@@ -6,6 +6,7 @@ import {
   NestFastifyApplication,
 } from '@nestjs/platform-fastify';
 import { ConfigService } from '@nestjs/config';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
@@ -19,11 +20,18 @@ async function bootstrap() {
     .setTitle('Todo API')
     .setDescription('The Todo API description')
     .setVersion('1.0')
-    .addTag('todos')
+    //.addTag('todos')
     .addBearerAuth()
+    .addSecurityRequirements('bearer')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
+  
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+    }),
+  );
   
   await app.listen(configService.get('PORT') ? parseInt(configService.get('PORT')) : 3000);
 }
