@@ -1,27 +1,48 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { InjectModel } from '@nestjs/sequelize';
+import { User } from './user.model';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
-    private jwtService: JwtService
+    @InjectModel(User)
+    private userModel: typeof User,
+    private jwtService: JwtService,
   ) { }
 
-  async login(
-    username: string,
-    pass: string,
-  ): Promise<{ username: string, access_token: string }> {
-    const user = await this.usersService.findOne(username);
-    if (user && (await bcrypt.compare(pass, user.password))) {
-      const payload = { sub: user.id, username: user.username };
-      return {
-        username: user.username,
-        access_token: await this.jwtService.signAsync(payload),
-      };
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const { username, password } = createUserDto;
+
+    // Check if username or email already exists
+    const existingUser = await this.userModel.findOne({
+      where: { username },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('Username already exists');
     }
-    throw new UnauthorizedException();
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    return this.userModel.create({ username, password: hashedPassword });
+  }
+
+  async validateUser(username: string, password: string): Promise<any> {
+    const user = await this.userModel.findOne({ where: { username } });
+    if (user && await bcrypt.compare(password, user.password)) {
+      const { password, ...result } = user.toJSON();
+      return result;
+    }
+    return null;
+  }
+
+  async login(user: any): Promise<{ username: string, access_token: string }> {
+    const payload = { username: user.username, sub: user.id };
+    return {
+      username: user.username,
+      access_token: await this.jwtService.signAsync(payload),
+    };
   }
 }

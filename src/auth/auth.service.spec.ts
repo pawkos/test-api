@@ -1,13 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
-import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { UnauthorizedException } from '@nestjs/common';
+import { User } from './user.model';
+import { getModelToken } from '@nestjs/sequelize';
+import { CreateUserDto } from './dto/create-user.dto';
+import { ConflictException } from '@nestjs/common';
+
+jest.mock('bcrypt');
 
 describe('AuthService', () => {
   let service: AuthService;
-  let usersService: UsersService;
+  let userModel: typeof User;
   let jwtService: JwtService;
 
   beforeEach(async () => {
@@ -15,9 +19,10 @@ describe('AuthService', () => {
       providers: [
         AuthService,
         {
-          provide: UsersService,
+          provide: getModelToken(User),
           useValue: {
-            findOne: jest.fn().mockResolvedValue({ id: '1', username: 'test', password: 'test' }),
+            findOne: jest.fn(),
+            create: jest.fn(),
           },
         },
         {
@@ -26,37 +31,64 @@ describe('AuthService', () => {
             signAsync: jest.fn().mockResolvedValue('token'),
           },
         },
-        {
-          provide: bcrypt,
-          useValue: {
-            compare: jest.fn().mockResolvedValue(true),
-          },
-        },
       ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    usersService = module.get<UsersService>(UsersService);
+    userModel = module.get<typeof User>(getModelToken(User));
     jwtService = module.get<JwtService>(JwtService);
   });
 
-  it('should login successfully', async () => {
-    const bcryptCompare = jest.fn().mockResolvedValue(true);
-    (bcrypt.compare as jest.Mock) = bcryptCompare;
-    expect(await service.login('test', 'test')).toEqual({ username: 'test', access_token: expect.any(String) });
+  describe('create', () => {
+    it('should create a new user successfully', async () => {
+      const createUserDto: CreateUserDto = { username: 'test', password: 'test' };
+      (userModel.findOne as jest.Mock).mockResolvedValueOnce(null);
+      (userModel.create as jest.Mock).mockResolvedValueOnce(createUserDto);
+      (bcrypt.hash as jest.Mock).mockResolvedValueOnce('hashed_password');
+
+      const result = await service.create(createUserDto);
+
+      expect(userModel.findOne).toHaveBeenCalledWith({ where: { username: 'test' } });
+      expect(bcrypt.hash).toHaveBeenCalledWith('test', 10);
+      expect(userModel.create).toHaveBeenCalledWith({
+        username: 'test',
+        password: 'hashed_password',
+      });
+      expect(result).toEqual(createUserDto);
+    });
+
+    it('should throw ConflictException if username already exists', async () => {
+      const createUserDto: CreateUserDto = { username: 'test', password: 'test' };
+      (userModel.findOne as jest.Mock).mockResolvedValueOnce({ id: '1', username: 'test' });
+
+      await expect(service.create(createUserDto)).rejects.toThrow(ConflictException);
+    });
   });
 
-  it('should throw UnauthorizedException when user not found', async () => {
-    jest.spyOn(usersService, 'findOne').mockResolvedValueOnce(null);
-    await expect(service.login('wrong', 'wrong')).rejects.toThrow(UnauthorizedException);
-    //const bcryptCompare = jest.fn().mockRejectedValue(new Error('Random error'));
-    //(bcrypt.compare as jest.Mock) = bcryptCompare;
-    //jest.spyOn(service, 'login').mockResolvedValueOnce(null);
-    //expect(await service.login('wrong', 'wrong')).toBeNull();
-  });
+  describe('validateUser', () => {
+    it('should return user data without password if validation is successful', async () => {
+      const user = { id: '1', username: 'test', password: 'hashedPassword', toJSON: jest.fn().mockReturnValue({
+        id: '1',
+        username: 'test',
+        password: 'hashedPassword',
+      }) };
+      (userModel.findOne as jest.Mock).mockResolvedValueOnce(user);
+      (bcrypt.compare as jest.Mock).mockResolvedValueOnce(true);
 
-  it('should throw UnauthorizedException when password is incorrect', async () => {
-    jest.spyOn(bcrypt, 'compare').mockResolvedValueOnce(false);
-    await expect(service.login('test', 'test')).rejects.toThrow(UnauthorizedException);
+      const result = await service.validateUser('test', 'test');
+
+      expect(userModel.findOne).toHaveBeenCalledWith({ where: { username: 'test' } });
+      expect(bcrypt.compare).toHaveBeenCalledWith('test', 'hashedPassword');
+      expect(result).toEqual({ id: '1', username: 'test' });
+    });
+
+    it('should return null if validation fails', async () => {
+      (userModel.findOne as jest.Mock).mockResolvedValueOnce(null);
+
+      const result = await service.validateUser('test', 'test');
+
+      expect(userModel.findOne).toHaveBeenCalledWith({ where: { username: 'test' } });
+      expect(result).toBeNull();
+    });
   });
 });
