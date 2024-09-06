@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from './user.model';
 import { CreateUserDto } from './dto/create-user.dto';
+import { LoginUserDto } from './dto/login-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -38,7 +39,14 @@ export class AuthService {
     return null;
   }
 
-  async login(user: any): Promise<{ username: string, access_token: string }> {
+  async login(loginUserDto: LoginUserDto): Promise<{ username: string, access_token: string }> {
+    const { username } = loginUserDto;
+    const user = await this.userModel.findOne({ where: { username } });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
     const payload = { username: user.username, sub: user.id };
     return {
       username: user.username,

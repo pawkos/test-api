@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { User } from './auth/user.model';
+import { TodoModule } from './todo/todo.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { User } from './auth/user.model';
       inject: [ConfigService],
     }),
     AuthModule,
+    TodoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
