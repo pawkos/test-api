@@ -1,25 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './users/users.module';
-import { AuthModule } from './auth/auth.module';
 
 describe('AppService', () => {
-    let appService: AppService;
+    let service: AppService;
 
     beforeEach(async () => {
         const app: TestingModule = await Test.createTestingModule({
-            imports: [AuthModule, UsersModule],
-            controllers: [AppController],
             providers: [AppService],
         }).compile();
 
-        appService = app.get<AppService>(AppService);
+        service = app.get<AppService>(AppService);
     });
 
-    describe('app service', () => {
-        it('should return "Hello World!"', () => {
-            expect(appService.getHello()).toBe('Hello World!');
-        });
+    it('should be defined', () => {
+        expect(service).toBeDefined();
+    });
+
+    it('should return "Hello World!"', () => {
+        expect(service.getHello()).toBe('Hello World!');
     });
 });

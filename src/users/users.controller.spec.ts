@@ -4,8 +4,8 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 
 const createUserDto: CreateUserDto = {
-  firstName: 'firstName #1',
-  lastName: 'lastName #1',
+  username: 'test',
+  password: 'test',
 };
 
 describe('UsersController', () => {

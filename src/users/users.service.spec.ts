@@ -5,18 +5,18 @@ import { getModelToken } from '@nestjs/sequelize';
 
 const usersArray = [
   {
-    firstName: 'firstName #1',
-    lastName: 'lastName #1',
+    username: 'username1',
+    password: 'password1',
   },
   {
-    firstName: 'firstName #2',
-    lastName: 'lastName #2',
+    username: 'username2',
+    password: 'password2',
   },
 ];
 
 const oneUser = {
-  firstName: 'firstName #1',
-  lastName: 'lastName #1',
+  username: 'username1',
+  password: 'password1',
 };
 
 describe('UserService', () => {
@@ -51,15 +51,15 @@ describe('UserService', () => {
   describe('create()', () => {
     it('should successfully insert a user', () => {
       const oneUser = {
-        firstName: 'firstName #1',
-        lastName: 'lastName #1',
+        username: 'username1',
+        password: 'password1',
       };
       expect(
         service.create({
-          firstName: 'firstName #1',
-          lastName: 'lastName #1',
+          username: 'username1',
+          password: 'password1',
         }),
-      ).toEqual(oneUser);
+      ).resolves.toStrictEqual(oneUser);
     });
   });
 
@@ -73,8 +73,8 @@ describe('UserService', () => {
   describe('findOne()', () => {
     it('should get a single user', () => {
       const findSpy = jest.spyOn(model, 'findOne');
-      expect(service.findOne('1'));
-      expect(findSpy).toBeCalledWith({ where: { id: '1' } });
+      expect(service.findOne('username1'));
+      expect(findSpy).toHaveBeenCalledWith({ where: { username: 'username1' } });
     });
   });
 
@@ -83,8 +83,8 @@ describe('UserService', () => {
       const findSpy = jest.spyOn(model, 'findOne').mockReturnValue({
         destroy: jest.fn(),
       } as any);
-      const retVal = await service.remove('2');
-      expect(findSpy).toBeCalledWith({ where: { id: '2' } });
+      const retVal = await service.remove('username2');
+      expect(findSpy).toHaveBeenCalledWith({ where: { username: 'username2' } });
       expect(retVal).toBeUndefined();
     });
   });
