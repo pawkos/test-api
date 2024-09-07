@@ -28,6 +28,7 @@ export class TodoController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new TODO' })
   @ApiResponse({ status: 201, description: 'The TODO has been successfully created.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   create(@Body() createTodoDto: CreateTodoDto, @Request() req) {
     return this.todoService.create(createTodoDto, req.user.id);
   }
@@ -37,6 +38,7 @@ export class TodoController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a TODO by id' })
   @ApiResponse({ status: 200, description: 'The TODO has been successfully updated.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   update(@Param('id') id: string, @Body() updateTodoDto: UpdateTodoDto) {
     return this.todoService.update(+id, updateTodoDto);
   }
@@ -46,6 +48,7 @@ export class TodoController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a TODO by id' })
   @ApiResponse({ status: 200, description: 'The TODO has been successfully deleted.' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
   remove(@Param('id') id: string) {
     return this.todoService.remove(+id);
   }
