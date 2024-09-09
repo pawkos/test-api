@@ -54,7 +54,14 @@ describe('AuthService', () => {
         email: 'test@test.com',
         password: 'hashed_password',
       });
-      expect(result).toEqual(createUserDto);
+      expect(result).toEqual({
+        'access_token': 'token',
+        'email': 'test@test.com',
+        'user': {
+          'email': 'test@test.com',
+          'password': 'testtest',
+        }
+      });
     });
 
     it('should throw ConflictException if email already exists', async () => {

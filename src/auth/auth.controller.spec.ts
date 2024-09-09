@@ -33,20 +33,31 @@ describe('AuthController', () => {
 
   describe('register', () => {
     it('should register a new user', async () => {
-      const createUserDto: CreateUserDto = { email: 'test', password: 'test' };
-      const result = { id: '1', email: 'test' } as User;
+      const createUserDto: CreateUserDto = { email: 'test@test.com', password: 'testtest' };
+      const result = { id: '1', email: 'test@test.com' } as User;
 
-      jest.spyOn(authService, 'create').mockResolvedValue(result);
+      jest.spyOn(authService, 'create').mockResolvedValue({
+        user: result,
+        email: result.email,
+        access_token: 'some_token'
+      });
 
-      expect(await authController.register(createUserDto)).toBe(result);
+      expect(await authController.register(createUserDto)).toStrictEqual({
+        'access_token': 'some_token',
+        'email': 'test@test.com',
+        'user': {
+          'email': 'test@test.com',
+          'id': '1'
+        },
+      });
       expect(authService.create).toHaveBeenCalledWith(createUserDto);
     });
   });
 
   describe('login', () => {
     it('should log in a user', async () => {
-      const loginUserDto: LoginUserDto = { email: 'test', password: 'test' };
-      const result = { email: 'test', access_token: 'some_token' };
+      const loginUserDto: LoginUserDto = { email: 'test@test.com', password: 'testtest' };
+      const result = { email: 'test@test.com', access_token: 'some_token' };
 
       jest.spyOn(authService, 'login').mockResolvedValue(result);
 
