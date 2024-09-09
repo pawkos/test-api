@@ -32,7 +32,14 @@ async function bootstrap() {
       transform: true,
     }),
   );
+
+  // Enable CORS
+  app.enableCors({
+    origin:  '*', // 'http://localhost:4200', // Allow requests from this origin
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true, // Allow cookies and authorization headers
+  });
   
-  await app.listen(configService.get('PORT') ? parseInt(configService.get('PORT')) : 3000);
+  await app.listen(configService.get('PORT') ? parseInt(configService.get('PORT')) : 3000, '0.0.0.0');
 }
 bootstrap();

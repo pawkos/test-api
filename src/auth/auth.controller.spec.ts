@@ -33,8 +33,8 @@ describe('AuthController', () => {
 
   describe('register', () => {
     it('should register a new user', async () => {
-      const createUserDto: CreateUserDto = { username: 'test', password: 'test' };
-      const result = { id: '1', username: 'test' } as User;
+      const createUserDto: CreateUserDto = { email: 'test', password: 'test' };
+      const result = { id: '1', email: 'test' } as User;
 
       jest.spyOn(authService, 'create').mockResolvedValue(result);
 
@@ -45,8 +45,8 @@ describe('AuthController', () => {
 
   describe('login', () => {
     it('should log in a user', async () => {
-      const loginUserDto: LoginUserDto = { username: 'test', password: 'test' };
-      const result = { username: 'test', access_token: 'some_token' };
+      const loginUserDto: LoginUserDto = { email: 'test', password: 'test' };
+      const result = { email: 'test', access_token: 'some_token' };
 
       jest.spyOn(authService, 'login').mockResolvedValue(result);
 

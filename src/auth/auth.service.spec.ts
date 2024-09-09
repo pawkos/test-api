@@ -41,25 +41,25 @@ describe('AuthService', () => {
 
   describe('create', () => {
     it('should create a new user successfully', async () => {
-      const createUserDto: CreateUserDto = { username: 'test', password: 'test' };
+      const createUserDto: CreateUserDto = { email: 'test@test.com', password: 'testtest' };
       (userModel.findOne as jest.Mock).mockResolvedValueOnce(null);
       (userModel.create as jest.Mock).mockResolvedValueOnce(createUserDto);
       (bcrypt.hash as jest.Mock).mockResolvedValueOnce('hashed_password');
 
       const result = await service.create(createUserDto);
 
-      expect(userModel.findOne).toHaveBeenCalledWith({ where: { username: 'test' } });
-      expect(bcrypt.hash).toHaveBeenCalledWith('test', 10);
+      expect(userModel.findOne).toHaveBeenCalledWith({ where: { email: 'test@test.com' } });
+      expect(bcrypt.hash).toHaveBeenCalledWith('testtest', 10);
       expect(userModel.create).toHaveBeenCalledWith({
-        username: 'test',
+        email: 'test@test.com',
         password: 'hashed_password',
       });
       expect(result).toEqual(createUserDto);
     });
 
-    it('should throw ConflictException if username already exists', async () => {
-      const createUserDto: CreateUserDto = { username: 'test', password: 'test' };
-      (userModel.findOne as jest.Mock).mockResolvedValueOnce({ id: '1', username: 'test' });
+    it('should throw ConflictException if email already exists', async () => {
+      const createUserDto: CreateUserDto = { email: 'test@test.com', password: 'testtest' };
+      (userModel.findOne as jest.Mock).mockResolvedValueOnce({ id: '1', email: 'test@test.com' });
 
       await expect(service.create(createUserDto)).rejects.toThrow(ConflictException);
     });
@@ -67,27 +67,27 @@ describe('AuthService', () => {
 
   describe('validateUser', () => {
     it('should return user data without password if validation is successful', async () => {
-      const user = { id: '1', username: 'test', password: 'hashedPassword', toJSON: jest.fn().mockReturnValue({
+      const user = { id: '1', email: 'test@test.com', password: 'hashedPassword', toJSON: jest.fn().mockReturnValue({
         id: '1',
-        username: 'test',
+        email: 'test@test.com',
         password: 'hashedPassword',
       }) };
       (userModel.findOne as jest.Mock).mockResolvedValueOnce(user);
       (bcrypt.compare as jest.Mock).mockResolvedValueOnce(true);
 
-      const result = await service.validateUser('test', 'test');
+      const result = await service.validateUser('test@test.com', 'testtest');
 
-      expect(userModel.findOne).toHaveBeenCalledWith({ where: { username: 'test' } });
-      expect(bcrypt.compare).toHaveBeenCalledWith('test', 'hashedPassword');
-      expect(result).toEqual({ id: '1', username: 'test' });
+      expect(userModel.findOne).toHaveBeenCalledWith({ where: { email: 'test@test.com' } });
+      expect(bcrypt.compare).toHaveBeenCalledWith('testtest', 'hashedPassword');
+      expect(result).toEqual({ id: '1', email: 'test@test.com' });
     });
 
     it('should return null if validation fails', async () => {
       (userModel.findOne as jest.Mock).mockResolvedValueOnce(null);
 
-      const result = await service.validateUser('test', 'test');
+      const result = await service.validateUser('test@test.com', 'testtest');
 
-      expect(userModel.findOne).toHaveBeenCalledWith({ where: { username: 'test' } });
+      expect(userModel.findOne).toHaveBeenCalledWith({ where: { email: 'test@test.com' } });
       expect(result).toBeNull();
     });
   });

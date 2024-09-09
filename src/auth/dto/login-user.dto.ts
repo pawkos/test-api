@@ -9,7 +9,7 @@ export class LoginUserDto {
   })
   @IsNotEmpty()
   @IsEmail()
-  username: string;
+  email: string;
 
   @ApiProperty({
     type: 'string',

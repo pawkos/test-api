@@ -6,7 +6,7 @@ export class User extends Model<User> {
     allowNull: false,
     unique: true,
   })
-  username: string;
+  email: string;
 
   @Column({
     allowNull: false,

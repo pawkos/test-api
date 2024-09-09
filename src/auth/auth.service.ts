@@ -14,24 +14,33 @@ export class AuthService {
     private jwtService: JwtService,
   ) { }
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
-    const { username, password } = createUserDto;
+  async create(createUserDto: CreateUserDto): Promise<{ user: User, email: string, access_token: string }> {
+    const { email, password } = createUserDto;
 
-    // Check if username or email already exists
+    // Check if email or email already exists
     const existingUser = await this.userModel.findOne({
-      where: { username },
+      where: { email },
     });
 
     if (existingUser) {
-      throw new ConflictException('Username already exists');
+      throw new ConflictException('email already exists');
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    return this.userModel.create({ username, password: hashedPassword });
+    const user = await this.userModel.create({ email, password: hashedPassword });
+
+    const payload = { sub: user.id, email: user.email };
+    const access_token = await this.jwtService.signAsync(payload);
+
+    return { 
+      user,
+      email: user.email,
+      access_token
+    };
   }
 
-  async validateUser(username: string, password: string): Promise<any> {
-    const user = await this.userModel.findOne({ where: { username } });
+  async validateUser(email: string, password: string): Promise<any> {
+    const user = await this.userModel.findOne({ where: { email } });
     if (user && await bcrypt.compare(password, user.password)) {
       const { password, ...result } = user.toJSON();
       return result;
@@ -39,17 +48,17 @@ export class AuthService {
     return null;
   }
 
-  async login(loginUserDto: LoginUserDto): Promise<{ username: string, access_token: string }> {
-    const { username } = loginUserDto;
-    const user = await this.userModel.findOne({ where: { username } });
+  async login(loginUserDto: LoginUserDto): Promise<{ email: string, access_token: string }> {
+    const { email } = loginUserDto;
+    const user = await this.userModel.findOne({ where: { email } });
 
     if (!user) {
-      throw new Error('User not found');
+      throw new ConflictException('User not found');
     }
 
-    const payload = { username: user.username, sub: user.id };
+    const payload = { email: user.email, sub: user.id };
     return {
-      username: user.username,
+      email: user.email,
       access_token: await this.jwtService.signAsync(payload),
     };
   }
