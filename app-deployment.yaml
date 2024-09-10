@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app
+  template:
+    metadata:
+      labels:
+        app: app
+    spec:
+      containers:
+      - name: app
+        image: todo-api:latest  # Replace with your actual image
+        env:
+        - name: DB_HOST
+          value: postgres
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: DB_PORT
+        - name: DB_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: DB_USERNAME
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: app-config
+              key: DB_PASSWORD
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: app-config
+              key: DB_NAME
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: app-config
+              key: JWT_SECRET
+        ports:
+        - containerPort: 3000

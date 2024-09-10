@@ -1,32 +1,23 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
-
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
-
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+Software Developer Test - Backend.
+Requirements:
+- NestJS
+- Authentication with JWT Token
+- Unit test
+- README with steps to run the project
+- Running on PORT 3000
+Optional:
+- Postgres Database
+- Sequelize ORM
+- Swagger Docs
+- Fastify Provider for NestJS
+- Dockerfile
+- Kubernetes deployment and service YAML
 
 ## Project setup
+
+Rename template.env to .env
 
 ```bash
 $ npm install
@@ -37,6 +28,9 @@ $ npm install
 ```bash
 # development
 $ npm run start
+# or
+docker-compose up
+# or kubectl
 
 # watch mode
 $ npm run start:dev
@@ -50,36 +44,47 @@ $ npm run start:prod
 ```bash
 # unit tests
 $ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
 ```
 
-## Resources
+## Deploy using kubectl
 
-Check out a few resources that may come in handy when working with NestJS:
+```bash
+# 0. build image
+$ docker build -t todo-api:latest .
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+# 1. Create a namespace (optional, but recommended):
+$ kubectl create namespace todo-api
 
-## Support
+# 2. Create ConfigMap:
+$ kubectl apply -f app-config.yaml -n todo-api
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+# 3. Deploy Postgres:
+$ kubectl apply -f postgres-deployment.yaml -n todo-api
+$ kubectl apply -f postgres-service.yaml -n todo-api
 
-## Stay in touch
+# 4. Deploy application:
+$ kubectl apply -f app-deployment.yaml -n todo-api
+4 kubectl apply -f app-service.yaml -n todo-api
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+# 5. Check the status of deployments:
+$ kubectl get deployments -n todo-api
 
-## License
+# 6. Check the status of pods:
+$ kubectl get pods -n todo-api
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+# 7. Check the status of services:
+$ kubectl get services -n todo-api
+
+# 8. View logs of a specific pod:
+$ kubectl logs <pod-name> -n todo-api
+
+# 9. Execute a command in a pod (e.g., to open a shell):
+$ kubectl exec -it <pod-name> -n todo-api -- /bin/bash
+
+# 10. Delete resources when you're done:
+$ kubectl delete -f app-deployment.yaml -f app-service.yaml -f postgres-deployment.yaml -f postgres-service.yaml -n todo-api
+$ kubectl delete configmap app-config -n todo-api
+
+# 11. Delete the namespace (if you created one):
+$ kubectl delete namespace todo-api
+```
