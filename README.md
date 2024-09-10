@@ -46,6 +46,11 @@ $ npm run start:prod
 $ npm run test
 ```
 
+## Access Swagger Docs
+```bash
+$ http://localhost:3000/api
+```
+
 ## Deploy using kubectl
 
 ```bash
